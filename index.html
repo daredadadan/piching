@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PitchingWebUi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="flex-row">
+    <div class="camera">
+        <video style="visibility: hidden; width: 10vw;height: 10vw;" id="video"></video>
+        <button class="shoot" id="shoot">①撮影(撮影完了後しばらくお待ちください。)</button>
+    </div>
+    <img class="photo">
+    <img class="photo">
+    <img class="photo">
+    <img class="photo">
+    <img class="photo">
+    <img class="photo">
+    <img class="photo">
+    <img class="photo">
+    <br>
+    <button id="databtn" class="shoot" onclick="startdata()">②データ解析(解析には数秒~数十秒かかります、うまくいかないときは再読み込み)</button>
+    <br>
+    <canvas id="canvas2"></canvas>
+    <canvas id="canvas3"></canvas>
+    <canvas id="canvas4"></canvas>
+    <canvas id="canvas5"></canvas>
+    <canvas id="canvas6"></canvas>
+    <canvas id="canvas7"></canvas>
+    <canvas id="canvas8"></canvas>
+    <canvas id="canvas9"></canvas>
+</div>
+    <script>
+let poseNet;
+let poses = [];
+
+let timeoutID;
+        const video = document.querySelector('#video');
+const canvas = document.createElement('canvas');
+const canvas2 = document.getElementById('canvas2');
+const ctx = canvas2.getContext('2d');
+const canvas3 = document.getElementById('canvas3');
+const ctx2 = canvas3.getContext('2d');
+const canvas4 = document.getElementById('canvas4');
+const ctx3 = canvas4.getContext('2d');
+const canvas5 = document.getElementById('canvas5');
+const ctx4 = canvas5.getContext('2d');
+const canvas6 = document.getElementById('canvas6');
+const ctx5 = canvas6.getContext('2d');
+const canvas7 = document.getElementById('canvas7');
+const ctx6 = canvas7.getContext('2d');
+const canvas8 = document.getElementById('canvas8');
+const ctx7 = canvas8.getContext('2d');
+const canvas9 = document.getElementById('canvas9');
+const ctx8 = canvas9.getContext('2d');
+
+var shoot = document.getElementById('shoot');
+var databtn = document.getElementById('databtn');
+
+window.onload = function(){
+  databtn.style.display = 'none';
+}
+
+initVideoCamera();
+initPhoto();
+document.querySelector('#shoot').addEventListener('click', photoShoot);
+
+/**
+ * ビデオのカメラ設定(デバイスのカメラ映像をビデオに表示)
+ */
+function initVideoCamera() {
+    navigator.mediaDevices.getUserMedia({ video:{width:300, height:300, facingMode: { exact: "environment" }}, audio: false })
+        .then((stream) => {
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(e => console.log(e));
+}
+
+/**
+ * 写真の初期描画
+ */
+function initPhoto() {
+    canvas.width = 320;
+    canvas.height = 240;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#AAA";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    var img =  document.getElementsByClassName("photo");
+  var img_arr = Array.from(img);
+  img_arr.forEach((element,index) => {
+    img_arr[index].src = canvas.toDataURL("image/png");
+  })
+}
+
+/**
+ * 写真の撮影描画
+ */
+function photoShoot() {
+  var img =  document.getElementsByClassName("photo");
+  var img_arr = Array.from(img);
+  databtn.style.display = 'none';
+  setTimeout(() => {
+    img_arr.forEach((element,index) => {
+    setTimeout(() => {
+      canvas.width = 320;
+      canvas.height = 240;
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      img_arr[index].src = canvas.toDataURL("image/png");
+    },300 * index);
+    setTimeout(() =>{
+      databtn.style.display = 'block';
+    },24000);
+  });
+  }, 1500);
+}
+
+async function startdata() {
+  shoot.style.display = 'none';
+  const detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet)
+ 
+  // img要素を取得する 
+  const imageElement = document.getElementsByClassName('photo');
+  
+    ctx.drawImage(imageElement[0], 0, 0);
+    const poses = await detector.estimatePoses(imageElement[0])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses[0].keypoints);
+    drawKeypoints(ctx,poses[0].keypoints);
+    drawSkeleton(ctx,poses[0].keypoints);
+
+    ctx2.drawImage(imageElement[1], 0, 0);
+    const poses1 = await detector.estimatePoses(imageElement[1])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses1[0].keypoints);
+    drawKeypoints(ctx2,poses1[0].keypoints);
+    drawSkeleton(ctx2,poses1[0].keypoints);
+
+    ctx3.drawImage(imageElement[2], 0, 0);
+    const poses2 = await detector.estimatePoses(imageElement[2])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses2[0].keypoints);
+    drawKeypoints(ctx3,poses2[0].keypoints);
+    drawSkeleton(ctx3,poses2[0].keypoints);
+
+    ctx4.drawImage(imageElement[3], 0, 0);
+    const poses3 = await detector.estimatePoses(imageElement[3])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses3[0].keypoints);
+    drawKeypoints(ctx4,poses3[0].keypoints);
+    drawSkeleton(ctx4,poses3[0].keypoints);
+
+    ctx5.drawImage(imageElement[4], 0, 0);
+    const poses4 = await detector.estimatePoses(imageElement[4])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses4[0].keypoints);
+    drawKeypoints(ctx5,poses4[0].keypoints);
+    drawSkeleton(ctx5,poses4[0].keypoints);
+    
+    ctx6.drawImage(imageElement[5], 0, 0);
+    const poses5 = await detector.estimatePoses(imageElement[5])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses5[0].keypoints);
+    drawKeypoints(ctx6,poses5[0].keypoints);
+    drawSkeleton(ctx6,poses5[0].keypoints);
+
+    ctx7.drawImage(imageElement[6], 0, 0);
+    const poses6 = await detector.estimatePoses(imageElement[6])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses6[0].keypoints);
+    drawKeypoints(ctx7,poses6[0].keypoints);
+    drawSkeleton(ctx7,poses6[0].keypoints);
+
+    ctx8.drawImage(imageElement[7], 0, 0);
+    const poses7 = await detector.estimatePoses(imageElement[7])
+  
+    // 姿勢推定結果を出力する
+    console.log(poses7[0].keypoints);
+    drawKeypoints(ctx8,poses7[0].keypoints);
+    drawSkeleton(ctx8,poses7[0].keypoints);
+  // 処理終了
+  databtn.style.display = 'none';
+  shoot.style.display = 'block';
+}
+
+function drawKeypoints(ctx, keypoints) {
+    const keypointInd = poseDetection.util.getKeypointIndexBySide(poseDetection.SupportedModels.PoseNet);
+    ctx.fillStyle = 'Red';
+    ctx.strokeStyle = 'White';
+    ctx.lineWidth = 2;
+    for (const i of keypointInd.middle) {
+        drawKeypoint(ctx, keypoints[i]);
+    }
+    ctx.fillStyle = 'Green';
+    for (const i of keypointInd.left) {
+        drawKeypoint(ctx, keypoints[i]);
+    }
+    ctx.fillStyle = 'Orange';
+    for (const i of keypointInd.right) {
+        drawKeypoint(ctx, keypoints[i]);
+    }
+}
+function drawKeypoint(ctx, keypoint) {
+    const circle = new Path2D();
+    circle.arc(keypoint.x, keypoint.y, 4, 0, 1 * Math.PI);
+    ctx.fill(circle);
+    ctx.stroke(circle);
+}
+/**
+ * Draw the skeleton of a body on the video.
+ * @param keypoints A list of keypoints.
+*/
+function drawSkeleton(ctx, keypoints) {
+    ctx.fillStyle = 'red';
+    ctx.strokeStyle = 'White';
+    ctx.lineWidth = 2;
+    poseDetection.util.getAdjacentPairs(poseDetection.SupportedModels.PoseNet).forEach(([i, j]) => {
+        const kp1 = keypoints[i];
+        const kp2 = keypoints[j];
+        // If score is null, just show the keypoint.
+        const score1 = kp1.score != null ? kp1.score : 1;
+        const score2 = kp2.score != null ? kp2.score : 1;
+        const scoreThreshold = 0.5;
+        if (score1 >= scoreThreshold && score2 >= scoreThreshold) {
+            ctx.beginPath();
+            ctx.moveTo(kp1.x, kp1.y);
+            ctx.lineTo(kp2.x, kp2.y);
+            ctx.stroke();
+        }
+    });
+  }
+    </script>
+</body>
+</html>

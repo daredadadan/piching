@@ -1,0 +1,11 @@
+.shoot{
+    width: 96vw;
+    height: 10vh;
+    background-color: burlywood;
+}
+
+canvas{
+    border: 1px solid black;
+    width: 320px;
+    height: 240px;
+}
